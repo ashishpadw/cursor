@@ -4,12 +4,18 @@ import (
 	"net/http"
 
 	"ecommerce-backend/handlers"
+	"ecommerce-backend/logger"
+	"ecommerce-backend/middleware"
 	"ecommerce-backend/services"
 	"github.com/gorilla/mux"
 )
 
 // SetupRoutes configures all the routes for the application
 func SetupRoutes() *mux.Router {
+	logger.Info("Setting up routes", map[string]interface{}{
+		"component": "routes",
+	})
+
 	// Initialize services
 	productService := services.NewProductService()
 
@@ -19,8 +25,24 @@ func SetupRoutes() *mux.Router {
 	// Create router
 	router := mux.NewRouter()
 
+	// Apply global middleware
+	router.Use(middleware.LoggingMiddleware)
+	router.Use(middleware.RecoveryMiddleware)
+
 	// Setup product routes
 	setupProductRoutes(router, productHandler)
+
+	logger.Info("Routes setup completed", map[string]interface{}{
+		"component": "routes",
+		"endpoints": []string{
+			"GET /api/products",
+			"GET /api/products/{id}",
+			"GET /api/products/search",
+			"GET /api/products/price-range",
+			"GET /api/categories",
+			"GET /api/genders",
+		},
+	})
 
 	return router
 }
