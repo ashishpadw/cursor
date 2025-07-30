@@ -2,6 +2,7 @@ package logger
 
 import (
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -36,10 +37,23 @@ func Init(config LogConfig) {
 			TimestampFormat: "2006-01-02 15:04:05",
 		})
 	} else {
+		// Determine if we should use colors (only in true development with TTY)
+		useColors := strings.ToLower(os.Getenv("ENV")) == "development" && 
+					strings.ToLower(os.Getenv("LOG_COLORS")) != "false"
+					
 		Logger.SetFormatter(&logrus.TextFormatter{
-			FullTimestamp:   true,
-			TimestampFormat: "2006-01-02 15:04:05",
-			ForceColors:     true,
+			FullTimestamp:          true,
+			TimestampFormat:        "2006-01-02 15:04:05",
+			ForceColors:            useColors,
+			DisableColors:          !useColors,     // Ensure consistent output
+			DisableQuote:           true,           // Don't quote field values
+			DisableSorting:         true,           // Keep field order as specified
+			PadLevelText:           true,           // Pad level text for alignment
+			DisableLevelTruncation: true,          // Don't truncate level names
+			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+				// Clean caller information formatting
+				return "", ""
+			},
 		})
 	}
 
